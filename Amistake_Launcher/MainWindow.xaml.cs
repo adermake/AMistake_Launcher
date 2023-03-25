@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -19,7 +20,6 @@ namespace Amistake_Launcher
     public partial class MainWindow : Window
     {
         private string rootPath;
-        private string versionFile;
         private string gameZip;
         private string gameExe;
 
@@ -56,7 +56,6 @@ namespace Amistake_Launcher
             InitializeComponent();
 
             rootPath = Directory.GetCurrentDirectory();
-            versionFile = Path.Combine(rootPath, "Version.txt");
             gameZip = Path.Combine(rootPath, "Build.zip");
             gameExe = Path.Combine(rootPath, "Build", "Unomaly.exe");
         }
@@ -72,19 +71,22 @@ namespace Amistake_Launcher
 
         private void CheckForUpdates()
         {
-            if (File.Exists(versionFile))
+            if(!String.IsNullOrEmpty(Environment.GetEnvironmentVariable("AMistake_MultiplayerPrototype")))
             {
-                Version localVersion = new Version(File.ReadAllText(versionFile));
-                VersionText.Text = localVersion.ToString();
+
+                int localVersion = int.Parse(Environment.GetEnvironmentVariable("AMistake_MultiplayerPrototype"));
+              
 
                 try
                 {
                     WebClient webClient = new WebClient();
-                    Version onlineVersion = new Version(webClient.DownloadString("https://drive.google.com/u/0/uc?id=1L4hQzd7r8jUDuhFwg0eHOsnA3TYbkoc9&export=download"));
+                    var version_json_string = new WebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
+                    JObject version_json = JObject.Parse(version_json_string);
+                    int version = version_json.Value<int>("version");
 
-                    if (onlineVersion.IsDifferentThan(localVersion))
+                    if (version != localVersion)
                     {
-                        InstallGameFiles(true, onlineVersion);
+                        InstallGameFiles(true, version);
                     }
                     else
                     {
@@ -99,12 +101,12 @@ namespace Amistake_Launcher
             }
             else
             {
-                InstallGameFiles(false, Version.zero);
+                InstallGameFiles(false, 0);
             }
         }
 
 
-        private void InstallGameFiles(bool _isUpdate, Version _onlineVersion)
+        private void InstallGameFiles(bool _isUpdate, int version)
         {
             try
             {
@@ -120,7 +122,8 @@ namespace Amistake_Launcher
                 }
 
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
-                webClient.DownloadFileAsync(new Uri("https://dl.dropboxusercontent.com/s/dhppoj1w3ydnjzg/Build.zip?dl=0"), gameZip, _onlineVersion);
+                webClient.QueryString.Add("version", ""+version);
+                webClient.DownloadFileAsync(new Uri("https://localhost:8080/artifact/MP/version/current/download"), gameZip, version);
             }
             catch (Exception ex)
             {
@@ -133,14 +136,13 @@ namespace Amistake_Launcher
         {
             try
             {
-                string onlineVersion = ((Version)e.UserState).ToString();
-                
+                string version = ((System.Net.WebClient)(sender)).QueryString["version"];
+
                 ZipFile.ExtractToDirectory(gameZip, rootPath);
                 File.Delete(gameZip);
 
-                File.WriteAllText(versionFile, onlineVersion);
-
-                VersionText.Text = onlineVersion;
+                Environment.SetEnvironmentVariable("AMistake_MultiplayerPrototype", "0");
+                VersionText.Text = version;
                 Status = LauncherStatus.ready;
             }
             catch (Exception ex)
@@ -190,66 +192,7 @@ namespace Amistake_Launcher
 
     }
 
-    struct Version
-    {
-        internal static Version zero = new Version(0, 0, 0);
-
-        private short major;
-        private short minor;
-        private short subMinor;
-
-        internal Version(short _major, short _minor, short _subMinor)
-        {
-            major = _major;
-            minor = _minor;
-            subMinor = _subMinor;
-        }
-        internal Version(string _version)
-        {
-            string[] versionStrings = _version.Split('.');
-            if (versionStrings.Length != 3)
-            {
-                major = 0;
-                minor = 0;
-                subMinor = 0;
-                return;
-            }
-
-            major = short.Parse(versionStrings[0]);
-            minor = short.Parse(versionStrings[1]);
-            subMinor = short.Parse(versionStrings[2]);
-        }
-
-        internal bool IsDifferentThan(Version _otherVersion)
-        {
-            if (major != _otherVersion.major)
-            {
-                return true;
-            }
-            else
-            {
-                if (minor != _otherVersion.minor)
-                {
-                    return true;
-                }
-                else
-                {
-                    if (subMinor != _otherVersion.subMinor)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public override string ToString()
-        {
-            return $"{major}.{minor}.{subMinor}";
-        }
-
-    }
-
+  
 
 }
 
