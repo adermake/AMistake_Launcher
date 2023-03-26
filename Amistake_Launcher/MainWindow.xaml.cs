@@ -85,10 +85,8 @@ namespace Amistake_Launcher
                 {
                     AMWebClient webClient = new AMWebClient();
                     //System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
-                    var version_json_string = new AMWebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
-                    MessageBox.Show($"Got json: {version_json_string}");
-                    JObject version_json = JObject.Parse(version_json_string);
-                    int version = version_json.Value<int>("version");
+       
+                    int version = getOnlineVersion();
 
                     if (version != localVersion)
                     {
@@ -107,10 +105,19 @@ namespace Amistake_Launcher
             }
             else
             {
-                InstallGameFiles(false, 0);
+                int version = getOnlineVersion();
+                InstallGameFiles(false, version);
             }
         }
 
+        public static int getOnlineVersion()
+        {
+            var version_json_string = new AMWebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
+            MessageBox.Show($"Got json: {version_json_string}");
+            JObject version_json = JObject.Parse(version_json_string);
+            int version = version_json.Value<int>("version");
+            return version;
+        }
 
         private void InstallGameFiles(bool _isUpdate, int version)
         {
@@ -209,8 +216,8 @@ namespace Amistake_Launcher
                 HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
                 string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
-                string certPath = strWorkPath+"/amistakeCert.cer";
-
+                string certPath = strWorkPath+"/amistakeCert.crt";
+                
                 request.ClientCertificates.Add(X509Certificate.CreateFromCertFile(certPath));
                 return request;
             }
