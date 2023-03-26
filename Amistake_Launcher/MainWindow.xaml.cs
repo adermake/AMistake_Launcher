@@ -207,7 +207,10 @@ namespace Amistake_Launcher
             protected override WebRequest GetWebRequest(Uri address)
             {
                 HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
-                string certPath = @"e:\amistakeCert.cer";
+                string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
+                string certPath = strWorkPath+"/amistakeCert.cer";
+
                 request.ClientCertificates.Add(X509Certificate.CreateFromCertFile(certPath));
                 return request;
             }
