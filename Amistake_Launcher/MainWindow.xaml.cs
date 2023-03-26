@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 
 namespace Amistake_Launcher
@@ -82,9 +83,9 @@ namespace Amistake_Launcher
 
                 try
                 {
-                    WebClient webClient = new WebClient();
+                    AMWebClient webClient = new AMWebClient();
                     System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
-                    var version_json_string = new WebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
+                    var version_json_string = new AMWebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
                     MessageBox.Show($"Got json: {version_json_string}");
                     JObject version_json = JObject.Parse(version_json_string);
                     int version = version_json.Value<int>("version");
@@ -115,7 +116,8 @@ namespace Amistake_Launcher
         {
             try
             {
-                WebClient webClient = new WebClient();
+                AMWebClient webClient = new AMWebClient();
+                
                 System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
                 if (_isUpdate)
                 {
@@ -142,7 +144,7 @@ namespace Amistake_Launcher
         {
             try
             {
-                string version = ((System.Net.WebClient)(sender)).QueryString["version"];
+                string version = ((AMWebClient)(sender)).QueryString["version"];
 
                 if (Directory.Exists(gamePath))
                 {
@@ -200,7 +202,16 @@ namespace Amistake_Launcher
             }
         }
 
-
+        class AMWebClient : WebClient
+        {
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
+                string certPath = @"e:\amistakeCert.cer";
+                request.ClientCertificates.Add(X509Certificate.CreateFromCertFile(certPath));
+                return request;
+            }
+        }
 
     }
 
