@@ -112,6 +112,7 @@ namespace Amistake_Launcher
 
         public static int getOnlineVersion()
         {
+            Console.WriteLine("GETTING ONLINE VERSION");
             var version_json_string = new AMWebClient().DownloadString("https://nrwv2yxngcbjcw6n.myfritz.net:25565/artifact/MP/version/current");
             MessageBox.Show($"Got json: {version_json_string}");
             JObject version_json = JObject.Parse(version_json_string);
@@ -216,8 +217,8 @@ namespace Amistake_Launcher
                 HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
                 string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
-                string certPath = strWorkPath+"/amistakeCert.crt";
-                
+                string certPath = strWorkPath+"\\amistakeCert.crt";
+                Console.WriteLine("PATH --->" +certPath);
                 request.ClientCertificates.Add(X509Certificate.CreateFromCertFile(certPath));
                 return request;
             }
