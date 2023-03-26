@@ -20,6 +20,7 @@ namespace Amistake_Launcher
     public partial class MainWindow : Window
     {
         private string rootPath;
+        private string gamePath;
         private string gameZip;
         private string gameExe;
 
@@ -56,8 +57,10 @@ namespace Amistake_Launcher
             InitializeComponent();
 
             rootPath = Directory.GetCurrentDirectory();
-            gameZip = Path.Combine(rootPath, "Build.zip");
-            gameExe = Path.Combine(rootPath, "Build", "Unomaly.exe");
+            gamePath = Path.Combine(rootPath, "game");
+            gameZip = Path.Combine(rootPath, "windows64");
+            gameExe = Path.Combine(gamePath, "game.exe");
+            
         }
         private void Window_ContentRendered(object sender, EventArgs args)
         {
@@ -80,7 +83,9 @@ namespace Amistake_Launcher
                 try
                 {
                     WebClient webClient = new WebClient();
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
                     var version_json_string = new WebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
+                    MessageBox.Show($"Got json: {version_json_string}");
                     JObject version_json = JObject.Parse(version_json_string);
                     int version = version_json.Value<int>("version");
 
@@ -111,6 +116,7 @@ namespace Amistake_Launcher
             try
             {
                 WebClient webClient = new WebClient();
+                System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
                 if (_isUpdate)
                 {
                     Status = LauncherStatus.downloadingUpdate;
@@ -120,7 +126,7 @@ namespace Amistake_Launcher
                     Status = LauncherStatus.downloadingGame;
                     
                 }
-
+                
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
                 webClient.QueryString.Add("version", ""+version);
                 webClient.DownloadFileAsync(new Uri("https://localhost:8080/artifact/MP/version/current/download"), gameZip, version);
@@ -138,7 +144,13 @@ namespace Amistake_Launcher
             {
                 string version = ((System.Net.WebClient)(sender)).QueryString["version"];
 
-                ZipFile.ExtractToDirectory(gameZip, rootPath);
+                if (Directory.Exists(gamePath))
+                {
+                    var dir = new DirectoryInfo(gamePath);
+                    dir.Delete(true);
+                }
+
+                ZipFile.ExtractToDirectory(gameZip, gamePath);
                 File.Delete(gameZip);
 
                 Environment.SetEnvironmentVariable("AMistake_MultiplayerPrototype", "0");
