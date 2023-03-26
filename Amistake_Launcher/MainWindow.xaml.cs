@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows;
 
@@ -110,8 +111,20 @@ namespace Amistake_Launcher
             }
         }
 
+        static bool OnValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            var certPublicString = certificate?.GetPublicKeyString();
+            Console.WriteLine("Mom I'm on TV:"+certPublicString);
+            var PUBLIC_KEY = "3082010A0282010100CAAD99D553E566106A3ADD40EA41D43358F7E6683354353C69F9CA2923B4EB94F819B12D04EC68557B8355ED5ECFC53233AF547825B271945CB0A1174D523411DF7A5B09EC17FE3BE341153BA4B5B19B7109ED55E3B38945D2B1A46BFDC61FE70A50B00F9D90288E33920E91343F79B1B65A95B06ECDC9426B7F44CA9BCA0A12AE8FBABF4606946E4457C26D642266EF654C02FE4B67BFD0AB5A7C6822D122C1B1B342EADFB54E77D1E2E4E5F25B3F5182835B43A7629CC7DF01485CB3466C8CFA95D94AFA362F3FAF6C6EE23C497047D90B12BA2EE5FAF6F18C376459375398C9E79A322C39AB09B3678F98D008EA5CCA01B2C47924C8826AC4E356F019E62D0203010001";
+            var keysMatch = PUBLIC_KEY == certPublicString;
+            return keysMatch;
+        }
+
+
         public static int getOnlineVersion()
         {
+
+            ServicePointManager.ServerCertificateValidationCallback = OnValidateCertificate;
             Console.WriteLine("GETTING ONLINE VERSION");
             var version_json_string = new AMWebClient().DownloadString("https://nrwv2yxngcbjcw6n.myfritz.net:25565/artifact/MP/version/current");
             MessageBox.Show($"Got json: {version_json_string}");
@@ -219,7 +232,7 @@ namespace Amistake_Launcher
                 string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
                 string certPath = strWorkPath+"\\amistakeCert.crt";
                 Console.WriteLine("PATH --->" +certPath);
-                request.ClientCertificates.Add(X509Certificate.CreateFromCertFile(certPath));
+                //request.ClientCertificates.Add(X509Certificate.CreateFromCertFile(certPath));
                 return request;
             }
         }
