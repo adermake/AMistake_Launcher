@@ -84,7 +84,7 @@ namespace Amistake_Launcher
                 try
                 {
                     AMWebClient webClient = new AMWebClient();
-                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
+                    //System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
                     var version_json_string = new AMWebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
                     MessageBox.Show($"Got json: {version_json_string}");
                     JObject version_json = JObject.Parse(version_json_string);
@@ -118,7 +118,7 @@ namespace Amistake_Launcher
             {
                 AMWebClient webClient = new AMWebClient();
                 
-                System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
+                //System.Net.ServicePointManager.ServerCertificateValidationCallback = (s, ce, ca, p) => true;
                 if (_isUpdate)
                 {
                     Status = LauncherStatus.downloadingUpdate;
