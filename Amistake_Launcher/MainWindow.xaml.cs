@@ -112,7 +112,7 @@ namespace Amistake_Launcher
 
         public static int getOnlineVersion()
         {
-            var version_json_string = new AMWebClient().DownloadString("https://localhost:8080/artifact/MP/version/current");
+            var version_json_string = new AMWebClient().DownloadString("https://nrwv2yxngcbjcw6n.myfritz.net:25565/artifact/MP/version/current");
             MessageBox.Show($"Got json: {version_json_string}");
             JObject version_json = JObject.Parse(version_json_string);
             int version = version_json.Value<int>("version");
@@ -138,7 +138,7 @@ namespace Amistake_Launcher
                 
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadGameCompletedCallback);
                 webClient.QueryString.Add("version", ""+version);
-                webClient.DownloadFileAsync(new Uri("https://localhost:8080/artifact/MP/version/current/download"), gameZip, version);
+                webClient.DownloadFileAsync(new Uri("https://nrwv2yxngcbjcw6n.myfritz.net:25565/artifact/MP/version/current/download"), gameZip, version);
             }
             catch (Exception ex)
             {
