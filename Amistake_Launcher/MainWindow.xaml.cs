@@ -127,7 +127,7 @@ namespace Amistake_Launcher
             ServicePointManager.ServerCertificateValidationCallback = OnValidateCertificate;
             Console.WriteLine("GETTING ONLINE VERSION");
             var version_json_string = new AMWebClient().DownloadString("https://nrwv2yxngcbjcw6n.myfritz.net:25565/artifact/MP/version/current");
-            MessageBox.Show($"Got json: {version_json_string}");
+            //MessageBox.Show($"Got json: {version_json_string}");
             JObject version_json = JObject.Parse(version_json_string);
             int version = version_json.Value<int>("version");
             return version;
